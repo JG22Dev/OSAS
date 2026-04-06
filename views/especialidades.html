@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Especialidades - Prepaga Médica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4">Gestión de Especialidades Médicas</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Nueva Especialidad</h5>
+                    <form id="formEspecialidad">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de la Especialidad</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Cardiología" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Guardar Especialidad</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Listado Actual</h5>
+                    <table class="table table-hover mt-3">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaEspecialidades">
+                            <tr><td colspan="3" class="text-center">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // URL base de nuestro controlador PHP
+    const controladorURL = '../controllers/EspecialidadController.php';
+
+    // 1. Función para cargar la tabla al entrar a la página
+    async function cargarEspecialidades() {
+        try {
+            const respuesta = await fetch(controladorURL + '?accion=listar');
+            const datos = await respuesta.json();
+            
+            const tbody = document.getElementById('tablaEspecialidades');
+            tbody.innerHTML = ''; // Limpiamos la tabla
+
+            if(datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center">No hay especialidades registradas.</td></tr>';
+                return;
+            }
+
+            // Recorremos los datos y armamos las filas HTML
+            datos.forEach(esp => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${esp.id_especialidad}</td>
+                        <td>${esp.nombre}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="alert('Función de borrar en desarrollo')">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            Swal.fire('Error', 'No se pudieron cargar las especialidades', 'error');
+        }
+    }
+
+    // 2. Evento para capturar el envío del formulario
+    document.getElementById('formEspecialidad').addEventListener('submit', async function(e) {
+        e.preventDefault(); // Evitamos que la página se recargue
+
+        const formData = new FormData(this); // Capturamos los datos del formulario
+
+        try {
+            const respuesta = await fetch(controladorURL + '?accion=registrar', {
+                method: 'POST',
+                body: formData
+            });
+            const resultado = await respuesta.json();
+
+            if(resultado.status === 'success') {
+                // Alerta de éxito con SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Excelente!',
+                    text: resultado.mensaje,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                this.reset(); // Limpiamos el input
+                cargarEspecialidades(); // Recargamos la tabla automáticamente
+            } else {
+                Swal.fire('Atención', resultado.mensaje, 'warning');
+            }
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            Swal.fire('Error', 'Hubo un problema de conexión al guardar', 'error');
+        }
+    });
+
+    // Ejecutamos la carga inicial cuando la pantalla esté lista
+    document.addEventListener('DOMContentLoaded', cargarEspecialidades);
+</script>
+
+</body>
+</html>
