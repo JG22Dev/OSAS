@@ -9,51 +9,45 @@ class Plan {
         $this->conn = $conexion->conectar();
     }
 
-    // Trae los 5 planes ordenados por nivel
-    public function obtenerPlanes() {
-        $query = "SELECT id_plan, nombre, cuota_mensual, nivel_prioridad FROM PLAN ORDER BY nivel_prioridad ASC";
+    public function listar() {
+        $query = "SELECT * FROM PLAN ORDER BY cuota_mensual ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Trae los beneficios exclusivos de UN plan en particular
-    public function obtenerBeneficiosPorPlan($id_plan) {
-        $query = "SELECT b.descripcion 
-                  FROM BENEFICIO b
-                  INNER JOIN PLAN_BENEFICIO pb ON b.id_beneficio = pb.id_beneficio
-                  WHERE pb.id_plan = :id_plan";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":id_plan", $id_plan);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Crea un beneficio nuevo y se lo asigna a un plan automáticamente
-    public function agregarBeneficioAPlan($id_plan, $descripcion) {
+    public function agregar($nombre, $cuota) {
         try {
-            $this->conn->beginTransaction();
+            $query = "INSERT INTO PLAN (nombre, cuota_mensual) VALUES (:nombre, :cuota)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(":nombre", $nombre);
+            $stmt->bindParam(":cuota", $cuota);
+            return $stmt->execute();
+        } catch(PDOException $e) { return false; }
+    }
 
-            // 1. Creamos el beneficio en el catálogo
-            $queryB = "INSERT INTO BENEFICIO (descripcion) VALUES (:desc)";
-            $stmtB = $this->conn->prepare($queryB);
-            $stmtB->bindParam(":desc", $descripcion);
-            $stmtB->execute();
-            
-            $id_beneficio = $this->conn->lastInsertId();
+    public function editar($id_plan, $nombre, $cuota) {
+        $query = "UPDATE PLAN SET nombre = :nombre, cuota_mensual = :cuota WHERE id_plan = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":nombre", $nombre);
+        $stmt->bindParam(":cuota", $cuota);
+        $stmt->bindParam(":id", $id_plan);
+        return $stmt->execute();
+    }
 
-            // 2. Lo vinculamos al Plan en la tabla intermedia
-            $queryPB = "INSERT INTO PLAN_BENEFICIO (id_plan, id_beneficio) VALUES (:id_plan, :id_beneficio)";
-            $stmtPB = $this->conn->prepare($queryPB);
-            $stmtPB->bindParam(":id_plan", $id_plan);
-            $stmtPB->bindParam(":id_beneficio", $id_beneficio);
-            $stmtPB->execute();
-
-            $this->conn->commit();
-            return true;
+    public function eliminar($id_plan) {
+        try {
+            $query = "DELETE FROM PLAN WHERE id_plan = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(":id", $id_plan);
+            $stmt->execute();
+            return ["status" => "success", "mensaje" => "Plan comercial eliminado."];
         } catch(PDOException $e) {
-            $this->conn->rollBack();
-            return false;
+            // Error 1451 significa que hay afiliados usando este plan
+            if($e->getCode() == '23000') {
+                return ["status" => "error", "mensaje" => "No podés eliminar este plan porque hay pacientes (afiliados) usándolo. Editale el nombre o precio en su lugar."];
+            }
+            return ["status" => "error", "mensaje" => "Error de base de datos."];
         }
     }
 }

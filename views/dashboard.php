@@ -1,12 +1,13 @@
 <?php
 session_start();
 
-// BARRERA DE SEGURIDAD
+// 1. BARRERA DE SEGURIDAD
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../index.php");
     exit();
 }
 
+// 2. Rescatamos los datos del usuario logueado
 $id_usuario = $_SESSION['id_usuario'];
 $email = $_SESSION['email'];
 $nombre_rol = $_SESSION['nombre_rol'];
@@ -35,11 +36,11 @@ $nombre_rol = $_SESSION['nombre_rol'];
     </div>
 </nav>
 
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
     <div class="row mb-4">
         <div class="col">
             <h2 class="fw-bold text-dark">Bienvenido a tu Panel</h2>
-            <p class="text-muted">Seleccioná la operación que deseás realizar.</p>
+            <p class="text-muted">Seleccioná el módulo al que deseás ingresar.</p>
         </div>
     </div>
 
@@ -54,6 +55,24 @@ $nombre_rol = $_SESSION['nombre_rol'];
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
                     <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="bi bi-person-lines-fill"></i> Gestión de Médicos</h5>
+                        <p class="card-text text-muted">Altas, bajas y modificaciones del personal médico.</p>
+                        <a href="admin_profesionales.php" class="btn btn-primary btn-sm">Ir a Médicos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="bi bi-building"></i> Gestión de Sedes</h5>
+                        <p class="card-text text-muted">Administrar las clínicas y centros médicos físicos.</p>
+                        <a href="admin_sedes.php" class="btn btn-primary btn-sm">Ir a Sedes</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
+                    <div class="card-body">
                         <h5 class="card-title text-primary"><i class="bi bi-people-fill"></i> Gestión de Afiliados</h5>
                         <p class="card-text text-muted">Dar de alta pacientes y asignarles un plan médico.</p>
                         <a href="admin_afiliados.php" class="btn btn-primary btn-sm">Ir a Afiliados</a>
@@ -64,12 +83,13 @@ $nombre_rol = $_SESSION['nombre_rol'];
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
                     <div class="card-body">
-                        <h5 class="card-title text-primary"><i class="bi bi-person-lines-fill"></i> Gestión de Médicos</h5>
-                        <p class="card-text text-muted">Altas, bajas y modificaciones del personal médico.</p>
-                        <a href="admin_profesionales.php" class="btn btn-primary btn-sm">Ir a Usuarios</a>
+                        <h5 class="card-title text-primary"><i class="bi bi-shield-lock"></i> Auditoría de Turnos</h5>
+                        <p class="card-text text-muted">Control global de todos los turnos del sistema.</p>
+                        <a href="admin_turnos.php" class="btn btn-primary btn-sm">Ver Todos los Turnos</a>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
                     <div class="card-body">
@@ -79,12 +99,13 @@ $nombre_rol = $_SESSION['nombre_rol'];
                     </div>
                 </div>
             </div>
+
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm border-0 border-start border-primary border-4">
                     <div class="card-body">
                         <h5 class="card-title text-primary"><i class="bi bi-heart-pulse"></i> Especialidades</h5>
                         <p class="card-text text-muted">Administrar las ramas médicas disponibles en la clínica.</p>
-                        <a href="especialidades.html" class="btn btn-primary btn-sm">Ir a Especialidades</a>
+                        <a href="admin_especialidades.php" class="btn btn-primary btn-sm">Ir a Especialidades</a>
                     </div>
                 </div>
             </div>
@@ -100,7 +121,7 @@ $nombre_rol = $_SESSION['nombre_rol'];
                     <div class="card-body">
                         <h5 class="card-title text-success"><i class="bi bi-calendar-plus"></i> Sacar Turno</h5>
                         <p class="card-text text-muted">Buscá profesionales y reservá tu próxima consulta.</p>
-                        <a href="sacar_turno.php" class="btn btn-success btn-sm">Reservar ahora</a>
+                        <a href="sacar_turno.php" class="btn btn-success btn-sm">Gestionar Turnos</a>
                     </div>
                 </div>
             </div>
@@ -148,7 +169,7 @@ $nombre_rol = $_SESSION['nombre_rol'];
             <div class="col-md-6">
                 <div class="card h-100 shadow-sm border-0 border-start border-warning border-4">
                     <div class="card-body">
-                        <h5 class="card-title text-warning"><i class="bi bi-front"></i> Recepción de Pacientes</h5>
+                        <h5 class="card-title text-warning"><i class="bi bi-front"></i> Control de Ingresos</h5>
                         <p class="card-text text-muted">Validar llegada de afiliados y derivar a sala de espera.</p>
                         <a href="recepcion_pacientes.php" class="btn btn-warning text-dark btn-sm">Ir a Recepción</a>
                     </div>
@@ -157,7 +178,7 @@ $nombre_rol = $_SESSION['nombre_rol'];
             <div class="col-md-6">
                 <div class="card h-100 shadow-sm border-0 border-start border-warning border-4">
                     <div class="card-body">
-                        <h5 class="card-title text-warning"><i class="bi bi-telephone"></i> Turnos Telefónicos</h5>
+                        <h5 class="card-title text-warning"><i class="bi bi-telephone"></i> Asignación Manual</h5>
                         <p class="card-text text-muted">Asignar turnos manualmente para afiliados presenciales o por teléfono.</p>
                         <a href="recepcion_turnos.php" class="btn btn-warning text-dark btn-sm">Asignar Turno</a>
                     </div>

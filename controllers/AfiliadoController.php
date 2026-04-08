@@ -21,27 +21,32 @@ switch ($accion) {
 
     case 'registrar':
         if(isset($_POST['nombre'], $_POST['apellido'], $_POST['dni'], $_POST['fecha_nacimiento'], $_POST['id_plan'], $_POST['email'], $_POST['password'])) {
-            
-            $nombre = trim($_POST['nombre']);
-            $apellido = trim($_POST['apellido']);
-            $dni = trim($_POST['dni']);
-            $fecha_nacimiento = $_POST['fecha_nacimiento'];
-            $id_plan = $_POST['id_plan'];
-            $email = trim($_POST['email']);
-            $password = $_POST['password'];
-
-            if(empty($nombre) || empty($dni) || empty($email)) {
-                echo json_encode(["status" => "error", "mensaje" => "Faltan completar campos obligatorios."]);
-                exit;
-            }
-
-            if($afiliadoModel->registrarAfiliado($nombre, $apellido, $dni, $fecha_nacimiento, $id_plan, $email, $password)) {
+            if($afiliadoModel->registrarAfiliado($_POST['nombre'], $_POST['apellido'], $_POST['dni'], $_POST['fecha_nacimiento'], $_POST['id_plan'], $_POST['email'], $_POST['password'])) {
                 echo json_encode(["status" => "success", "mensaje" => "¡Afiliado registrado y credencial generada!"]);
             } else {
                 echo json_encode(["status" => "error", "mensaje" => "Error al guardar. Verificá que el DNI o el Email no estén repetidos."]);
             }
-        } else {
-            echo json_encode(["status" => "error", "mensaje" => "Faltan datos obligatorios."]);
+        }
+        break;
+
+    case 'editar':
+        if(isset($_POST['id_afiliado'], $_POST['nombre'], $_POST['apellido'], $_POST['dni'], $_POST['fecha_nacimiento'], $_POST['id_plan'])) {
+            if($afiliadoModel->editarAfiliado($_POST['id_afiliado'], $_POST['nombre'], $_POST['apellido'], $_POST['dni'], $_POST['fecha_nacimiento'], $_POST['id_plan'])) {
+                echo json_encode(["status" => "success", "mensaje" => "Datos del afiliado actualizados."]);
+            } else {
+                echo json_encode(["status" => "error", "mensaje" => "Error al actualizar. ¿El DNI ya existe?"]);
+            }
+        }
+        break;
+
+    case 'cambiar_estado':
+        if(isset($_POST['id_usuario'], $_POST['estado'])) {
+            if($afiliadoModel->cambiarEstadoUsuario($_POST['id_usuario'], $_POST['estado'])) {
+                $mensaje = $_POST['estado'] === 'activo' ? "Afiliado reactivado." : "Cuenta de afiliado suspendida.";
+                echo json_encode(["status" => "success", "mensaje" => $mensaje]);
+            } else {
+                echo json_encode(["status" => "error", "mensaje" => "No se pudo cambiar el estado."]);
+            }
         }
         break;
         
