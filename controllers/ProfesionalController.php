@@ -2,7 +2,6 @@
 session_start();
 require_once '../models/Profesional.php';
 
-// Barrera de seguridad Backend: Solo el Admin puede hacer esto
 if (!isset($_SESSION['id_usuario']) || $_SESSION['nombre_rol'] !== 'Administrador') {
     echo json_encode(["status" => "error", "mensaje" => "Acceso denegado"]);
     exit;
@@ -22,28 +21,36 @@ switch ($accion) {
 
     case 'registrar':
         if(isset($_POST['nombre'], $_POST['apellido'], $_POST['matricula'], $_POST['email'], $_POST['password'], $_POST['id_especialidad'])) {
-            
-            $nombre = trim($_POST['nombre']);
-            $apellido = trim($_POST['apellido']);
-            $matricula = trim($_POST['matricula']);
-            $email = trim($_POST['email']);
-            $password = $_POST['password'];
-            $id_especialidad = $_POST['id_especialidad'];
-
-            // Validación básica
-            if(empty($nombre) || empty($email) || empty($matricula)) {
-                echo json_encode(["status" => "error", "mensaje" => "Faltan completar campos obligatorios."]);
-                exit;
-            }
-
-            if($profesionalModel->registrarProfesional($nombre, $apellido, $matricula, $email, $password, $id_especialidad)) {
-                echo json_encode(["status" => "success", "mensaje" => "¡Médico registrado y cuenta de acceso creada!"]);
+            if($profesionalModel->registrarProfesional($_POST['nombre'], $_POST['apellido'], $_POST['matricula'], $_POST['email'], $_POST['password'], $_POST['id_especialidad'])) {
+                echo json_encode(["status" => "success", "mensaje" => "¡Médico registrado correctamente!"]);
             } else {
-                // Si falla, suele ser porque el Email o la Matrícula ya existen (son campos UNIQUE en la base de datos)
-                echo json_encode(["status" => "error", "mensaje" => "Error al guardar. Verificá que el email o la matrícula no estén repetidos."]);
+                echo json_encode(["status" => "error", "mensaje" => "Error al guardar. Verificá que el email o matrícula no estén repetidos."]);
+            }
+        }
+        break;
+
+    // NUEVO: Controlador para Editar
+    case 'editar':
+        if(isset($_POST['id_profesional'], $_POST['nombre'], $_POST['apellido'], $_POST['matricula'], $_POST['id_especialidad'])) {
+            if($profesionalModel->editarProfesional($_POST['id_profesional'], $_POST['nombre'], $_POST['apellido'], $_POST['matricula'], $_POST['id_especialidad'])) {
+                echo json_encode(["status" => "success", "mensaje" => "Datos actualizados correctamente."]);
+            } else {
+                echo json_encode(["status" => "error", "mensaje" => "Hubo un error al actualizar los datos."]);
             }
         } else {
-            echo json_encode(["status" => "error", "mensaje" => "Faltan datos obligatorios en el formulario."]);
+            echo json_encode(["status" => "error", "mensaje" => "Faltan datos para editar."]);
+        }
+        break;
+
+    // NUEVO: Controlador para Baja Lógica
+    case 'cambiar_estado':
+        if(isset($_POST['id_usuario'], $_POST['estado'])) {
+            if($profesionalModel->cambiarEstadoUsuario($_POST['id_usuario'], $_POST['estado'])) {
+                $mensaje = $_POST['estado'] === 'activo' ? "Médico reactivado." : "Médico suspendido (Baja Lógica).";
+                echo json_encode(["status" => "success", "mensaje" => $mensaje]);
+            } else {
+                echo json_encode(["status" => "error", "mensaje" => "No se pudo cambiar el estado."]);
+            }
         }
         break;
         

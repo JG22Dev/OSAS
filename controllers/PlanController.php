@@ -2,6 +2,7 @@
 session_start();
 require_once '../models/Plan.php';
 
+// Barrera de seguridad estricta: Solo Admin maneja la plata
 if (!isset($_SESSION['id_usuario']) || $_SESSION['nombre_rol'] !== 'Administrador') {
     echo json_encode(["status" => "error", "mensaje" => "Acceso denegado"]);
     exit;
@@ -11,31 +12,33 @@ $accion = isset($_GET['accion']) ? $_GET['accion'] : '';
 $planModel = new Plan();
 
 switch ($accion) {
-    case 'listar_todo':
-        // Buscamos los 5 planes
-        $planes = $planModel->obtenerPlanes();
-        
-        // A cada plan le inyectamos su array de beneficios
-        foreach ($planes as $key => $plan) {
-            $beneficios = $planModel->obtenerBeneficiosPorPlan($plan['id_plan']);
-            $planes[$key]['beneficios'] = $beneficios;
-        }
-        
-        echo json_encode($planes);
+    case 'listar':
+        echo json_encode($planModel->listar());
         break;
 
-    case 'agregar_beneficio':
-        if(isset($_POST['id_plan'], $_POST['descripcion']) && !empty($_POST['descripcion'])) {
-            $id_plan = $_POST['id_plan'];
-            $descripcion = trim($_POST['descripcion']);
-
-            if($planModel->agregarBeneficioAPlan($id_plan, $descripcion)) {
-                echo json_encode(["status" => "success", "mensaje" => "Beneficio agregado exitosamente al plan."]);
+    case 'agregar':
+        if(isset($_POST['nombre']) && isset($_POST['cuota_mensual'])) {
+            if($planModel->agregar($_POST['nombre'], $_POST['cuota_mensual'])) {
+                echo json_encode(["status" => "success", "mensaje" => "Nuevo plan creado."]);
             } else {
-                echo json_encode(["status" => "error", "mensaje" => "Hubo un error al guardar el beneficio."]);
+                echo json_encode(["status" => "error", "mensaje" => "Error al guardar."]);
             }
-        } else {
-            echo json_encode(["status" => "error", "mensaje" => "Faltan datos."]);
+        }
+        break;
+
+    case 'editar':
+        if(isset($_POST['id_plan'], $_POST['nombre'], $_POST['cuota_mensual'])) {
+            if($planModel->editar($_POST['id_plan'], $_POST['nombre'], $_POST['cuota_mensual'])) {
+                echo json_encode(["status" => "success", "mensaje" => "Plan actualizado correctamente."]);
+            } else {
+                echo json_encode(["status" => "error", "mensaje" => "Error al modificar."]);
+            }
+        }
+        break;
+
+    case 'eliminar':
+        if(isset($_POST['id_plan'])) {
+            echo json_encode($planModel->eliminar($_POST['id_plan']));
         }
         break;
 
